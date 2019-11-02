@@ -103,6 +103,7 @@ module.exports = router;
 const NUM_GAMES = 5;
 /* set up game list */
 
+
 var gameList = [];
 
 const defaultGame = {
