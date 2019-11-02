@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <link rel="stylesheet" href="stylesheets/style.css" />
+    <title>Battles</title>
+</head>
+
+<body>
+    <h1>Battle Your Friends!!</h1>
+    <div id="game">
+        <div v-if="inGame">
+            <h2 v-if="watching">You are watching.</h2>
+            <h2 v-else>You are player {{ playerNumber }}</h2>
+            <div v-if="game.gameOver">
+                <p>Game over!</p>
+                <p v-if="game.winner === 0">The game is a tie</p>
+                <p v-else-if="game.winner === 1">Player 1 Won!</p>
+                <p v-else-if="game.winner === 2">Player 2 Won!</p>
+            </div>
+            <div v-else-if="!watching">
+                <p v-if="!game.started">Wating for opponent</p>
+                <p v-else-if="yourTurn">It is your turn</p>
+                <p v-else>Waiting for oppenent to move</p>
+            </div>
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-12 col-md-6">
+                        <h2>Player 1</h2>
+                        <p>hp: {{ game.players[0].hp }}</p>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <h2>Player 2</h2>
+                        <p>hp: {{ game.players[1].hp }}</p>
+                    </div>
+                </div>
+            </div>
+            <div v-if="!watching">
+                <button v-for="attack in game.players[playerNumber - 1].attacks" v-on:click="makeAttack(attack.title)">{{ attack.title }}</button>
+            </div>
+            <div>
+                <p>Game log</p>
+                <p v-for="item in game.log">{{ item }}</p>
+            </div>
+        </div>
+        <div v-else>
+            <ul>
+                <li v-for="game in gamelist">
+                    Game{{ game.number }}
+                    <button v-if="game.started" v-on:click="getGame(game)">Watch</button>
+                    <button v-else v-on:click="getGame(game)">Play</button>
+                </li>
+            </ul>
+        </div>
+        <button v-on:click="resetGames">Reset Games</button>
+    </div>
+
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js" integrity="sha256-mpnrJ5DpEZZkwkE1ZgkEQQJW/46CSEh/STrZKOB/qoM=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.2/dist/vue.js"></script>
+    <script src="javascripts/script.js"></script>
+</body>
+
+
+
+</html>
