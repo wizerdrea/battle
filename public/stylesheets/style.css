@@ -6,3 +6,8 @@ body {
 a {
   color: #00B7FF;
 }
+
+#gameLog {
+  height: 200px;
+  overflow: auto;
+}

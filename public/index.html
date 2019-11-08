@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link rel="stylesheet" href="stylesheets/style.css" />
-    <title>Battles</title>
+    <title>Battle</title>
 </head>
 
 <body>
@@ -14,6 +14,7 @@
     <div id="game">
         <div v-if="inGame">
             <h2 v-if="watching">You are watching.</h2>
+            <button v-if="watching" v-on:click="returnToGameList()">Return to game list</button>
             <h2 v-else>You are player {{ playerNumber }}</h2>
             <div v-if="game.gameOver">
                 <p>Game over!</p>
@@ -31,19 +32,35 @@
                     <div class="col-12 col-md-6">
                         <h2>Player 1</h2>
                         <p>hp: {{ game.players[0].hp }}</p>
+                        <p>hp: {{ game.players[0].mp }}</p>
                     </div>
                     <div class="col-12 col-md-6">
                         <h2>Player 2</h2>
                         <p>hp: {{ game.players[1].hp }}</p>
+                        <p>hp: {{ game.players[1].mp }}</p>
                     </div>
                 </div>
             </div>
             <div v-if="!watching">
-                <button v-for="attack in game.players[playerNumber - 1].attacks" v-on:click="makeAttack(attack.title)">{{ attack.title }}</button>
+                <div v-for="move in game.players[playerNumber - 1].attacks">
+                    
+                    <p> Title: {{ move.title }} </p>
+                    <p> Level: {{ move.level }} </p>
+                    <p> mp cost: {{ move.mpCost }} </p>
+                    <p> hp cost: {{ move.hpCost }} </p>
+                    <p> Strength: {{ move.strength }} </p>
+                    <p> cooldown: {{ move.cooldown }} </p>
+                    <p> Turns until avaliable: {{ move.turnsUntilReady }} </p>
+                    <button v-on:click="makeAttack(move.index)">Use</button>
+                </div>
+                
+                <button v-on:click="quitGame()">Quit Game</button>
             </div>
-            <div>
+            <div id="gameLog">
                 <p>Game log</p>
-                <p v-for="item in game.log">{{ item }}</p>
+                <ul>
+                    <li v-for="item in game.log">{{ item }}</li>
+                </ul>
             </div>
         </div>
         <div v-else>

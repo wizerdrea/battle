@@ -15,8 +15,7 @@ let app = new Vue({
     },
     computed: {
         watching() {
-            if (this.playerNumber === 0)
-            {
+            if (this.playerNumber === 0) {
                 return true;
             }
             else {
@@ -24,8 +23,7 @@ let app = new Vue({
             }
         },
         yourTurn() {
-            if (this.game.player1turn === undefined)
-            {
+            if (this.game.player1turn === undefined) {
                 return;
             }
             else if ((this.game.player1turn === true) && (this.playerNumber === 1)) {
@@ -40,7 +38,7 @@ let app = new Vue({
             else {
                 return false;
             }
-            
+
         },
     },
     methods: {
@@ -65,15 +63,15 @@ let app = new Vue({
             else {
                 this.playerNumber = 0;
             }
-            var url = "game/start?gameNumber=" + game.number + "&playerNumber=" + this.playerNumber;
-            fetch(url)
-                .then((data) => {
-                    return (data.json());
+            var url = "http://cs260.kentashby.com:4210/game/start";
+            axios.post(url, {
+                    game: this.game.number,
+                    gameNumber: game.number,
+                    playerNumber: this.playerNumber
                 })
-                .then((game) => {
-                    if (game.success === undefined)
-                    {
-                        this.game = game;
+                .then(response => {
+                    if (response.data.success === undefined) {
+                        this.game = response.data;
                         this.inGame = true;
                     }
                     else {
@@ -83,10 +81,12 @@ let app = new Vue({
                         this.inGame = false;
                     }
                 })
+                .catch(e => {
+                    console.log(e);
+                });
         },
         updateGame() {
-            if (this.reseting)
-            {
+            if (this.reseting) {
                 return;
             }
             var url = "game/see?gameNumber=" + this.game.number;
@@ -102,8 +102,8 @@ let app = new Vue({
         resetGames() {
             var url = "http://cs260.kentashby.com:4210/game/reset";
             axios.post(url)
-                .then(response => { 
-                    this.inGame = false; 
+                .then(response => {
+                    this.inGame = false;
                     this.playerNumber = 0;
                     this.getGameList();
                 })
@@ -112,39 +112,61 @@ let app = new Vue({
                 });
         },
         makeAttack(title) {
-            if (!this.yourTurn)
-            {
+            if (!this.yourTurn) {
                 return;
             }
             let attackNum;
-            for (attackNum = 0; attackNum < this.game.players[this.playerNumber - 1].attacks.length; attackNum++)
-            {
-                if (this.game.players[this.playerNumber - 1].attacks[attackNum].title === title)
-                {
+            for (attackNum = 0; attackNum < this.game.players[this.playerNumber - 1].attacks.length; attackNum++) {
+                if (this.game.players[this.playerNumber - 1].attacks[attackNum].title === title) {
                     break;
                 }
             }
             var url = "http://cs260.kentashby.com:4210/game/move";
-            axios.post(url, { game: this.game.number,
-                move: attackNum,
-                player: this.playerNumber
-            })
-                .then(response => { 
+            axios.post(url, {
+                    game: this.game.number,
+                    move: attackNum,
+                    player: this.playerNumber
+                })
+                .then(response => {
                     this.updateGame();
                 })
                 .catch(e => {
                     console.log(e);
                 });
         },
+        quitGame() {
+            if(!this.inGame)
+            {
+                return;
+            }
+            var url = "http://cs260.kentashby.com:4210/game/quit";
+            axios.post(url, {
+                    game: this.game.number,
+                    player: this.playerNumber
+                })
+                .then(response => {
+                    this.inGame = false;
+                    this.getGameList();
+                })
+                .catch(e => {
+                    console.log(e);
+                });
+            
+        },
+        returnToGameList() {
+            this.inGame = false;
+            this.getGameList();
+        },
+        
     },
     mounted: function() {
         window.setInterval(() => {
             if (!this.inGame) {
                 this.getGameList();
             }
-            else if (!this.yourTurn || !this.game.started) {
+            else {
                 this.updateGame();
             }
-        }, 5000);
+        }, 2500);
     }
 });
