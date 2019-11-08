@@ -9,6 +9,7 @@ let app = new Vue({
         inGame: false,
         playerNumber: 0,
         game: {},
+        resetPassword: "password",
     },
     created: function() {
         this.getGameList();
@@ -101,30 +102,26 @@ let app = new Vue({
         },
         resetGames() {
             var url = "http://cs260.kentashby.com:4210/game/reset";
-            axios.post(url)
+            axios.post(url, { password: this.resetPassword })
                 .then(response => {
-                    this.inGame = false;
-                    this.playerNumber = 0;
-                    this.getGameList();
+                    if (response.data.success === "Updated Successfully") {
+                        this.inGame = false;
+                        this.playerNumber = 0;
+                        this.getGameList();
+                    }
                 })
                 .catch(e => {
                     console.log(e);
                 });
         },
-        makeAttack(title) {
+        makeAttack(index) {
             if (!this.yourTurn) {
                 return;
-            }
-            let attackNum;
-            for (attackNum = 0; attackNum < this.game.players[this.playerNumber - 1].attacks.length; attackNum++) {
-                if (this.game.players[this.playerNumber - 1].attacks[attackNum].title === title) {
-                    break;
-                }
             }
             var url = "http://cs260.kentashby.com:4210/game/move";
             axios.post(url, {
                     game: this.game.number,
-                    move: attackNum,
+                    move: index,
                     player: this.playerNumber
                 })
                 .then(response => {

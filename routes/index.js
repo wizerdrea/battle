@@ -1,4 +1,5 @@
 var express = require('express');
+
 var router = express.Router();
 
 /* GET home page. */
@@ -54,10 +55,19 @@ router.get('/game/see', function(req, res) {
 
 //manulally reset all games
 router.post('/game/reset', function(req, res) {
-    for (let i = 0; i < gameList.length; ++i)
+    if (req.body.password != "nihil")
     {
+        //send response
+        res.end('{"success" : "incorrect password", "status" : 200}');
+        return;
+    }
+    else
+    {
+        for (let i = 0; i < gameList.length; ++i)
+        {
         gameList[i] = JSON.parse(JSON.stringify(defaultGame));
         gameList[i].number = i;
+        }
     }
     res.end('{"success" : "Updated Successfully", "status" : 200}');
 });
@@ -92,8 +102,8 @@ router.post('/game/move', function(req, res) {
         res.end('{"success" : "Move not ready", "status" : 200}');
         return;
     }
-    if (((gameList[game].players[player].attacks[move].hp - gameList[game].players[player].attacks[move].hpCost) < 0) ||
-        ((gameList[game].players[player].attacks[move].mp - gameList[game].players[player].attacks[move].mpCost) < 0)) {
+    if (((gameList[game].players[player].hp - gameList[game].players[player].attacks[move].hpCost) < 0) ||
+        ((gameList[game].players[player].mp - gameList[game].players[player].attacks[move].mpCost) < 0)) {
         
         res.end('{"success" : "Cannot pay for move", "status" : 200}');
         return;
@@ -123,16 +133,16 @@ router.post('/game/quit', function(req, res) {
         gameList[game].gameOver = true;
         if (player === 1)
         {
-            gameList[game].winner == 2;
-            gameList[game].log.unshift("Player 1 has quit.");
-            gameList[game].log.unshift("Player 2 wins!!");
+            gameList[game].winner = 2;
+            gameList[game].log.unshift(gameList[game].players[0].name + " has quit.");
+            gameList[game].log.unshift(gameList[game].players[1].name + " wins!!");
             gameList[game].playerquit[0] = true;
         }
         else
         {
-            gameList[game].winner == 1;
-            gameList[game].log.unshift("Player 2 has quit.");
-            gameList[game].log.unshift("Player 1 wins!!");
+            gameList[game].winner = 1;
+            gameList[game].log.unshift(gameList[game].players[1].name + " has quit.");
+            gameList[game].log.unshift(gameList[game].players[0].name + " wins!!");
             gameList[game].playerquit[1] = true;
         }
     }
@@ -194,7 +204,7 @@ module.exports = router;
 const NUM_GAMES = 5;
 const NUM_MOVES = 7
 const BASE_HP = 100;
-const BASE_MP = 50
+const BASE_MP = 75
 const BASE_BASIC_STRENGTH = 5;
 const BASE_MOVE_STRENGTH = 10;
 const BASE_GREATER_MOVE_STRENGTH = 10;
@@ -219,12 +229,12 @@ const defaultGame = {
         playerquit: [false, false],
         log: [],
         players: [{
-                name: "player1",
+                name: "unselected",
                 hp: 20,
                 attacks: []
             },
             {
-                name: "player2",
+                name: "unselected",
                 hp: 20,
                 attacks: []
             }
@@ -239,7 +249,7 @@ const basicCharacter = {
 };
 
 const basicMove = {
-    title: "basic",
+    title: "basic attack",
     level: "1",
     mpCost: 0,
     hpCost: 0,
@@ -249,7 +259,9 @@ const basicMove = {
     targetOpponent: true,
     targetSelf: false,
     damageOpponent: true,
-    damageSelf: false
+    damageSelf: false,
+    description: "basic attack which is always available",
+    index: 0
 };
 
 const moveList = [
@@ -264,7 +276,9 @@ const moveList = [
     targetOpponent: false,
     targetSelf: true,
     damageOpponent: false,
-    damageSelf: false
+    damageSelf: false,
+    description: "gives you health",
+    index: 1
     },
     {
     title: "fireball",
@@ -277,12 +291,14 @@ const moveList = [
     targetOpponent: true,
     targetSelf: false,
     damageOpponent: true,
-    damageSelf: false
+    damageSelf: false,
+    description: "damages oponent",
+    index: 1
     },
     {
     title: "restore",
     level: 1,
-    mpCost: 0,
+    mpCost: BASE_MP_COST,
     hpCost: 0,
     cooldown: BASE_COOLDOWN,
     turnsUntilReady: 0,
@@ -290,7 +306,9 @@ const moveList = [
     targetOpponent: true,
     targetSelf: true,
     damageOpponent: false,
-    damageSelf: false
+    damageSelf: false,
+    description: "gives health to you and opponent",
+    index: 1
     },
     {
     title: "obliterate",
@@ -303,7 +321,9 @@ const moveList = [
     targetOpponent: true,
     targetSelf: true,
     damageOpponent: true,
-    damageSelf: true
+    damageSelf: true,
+    description: "damages you and opponent",
+    index: 1
     },
     {
     title: "revenge",
@@ -316,7 +336,9 @@ const moveList = [
     targetOpponent: true,
     targetSelf: false,
     damageOpponent: true,
-    damageSelf: false
+    damageSelf: false,
+    description: "spen health to harm opponent",
+    index: 1
     },
     {
     title: "Drain Health",
@@ -329,7 +351,9 @@ const moveList = [
     targetOpponent: true,
     targetSelf: true,
     damageOpponent: true,
-    damageSelf: false
+    damageSelf: false,
+    description: "steal health from opponent",
+    index: 1
     },
     {
     title: "special",
@@ -342,12 +366,13 @@ const moveList = [
     targetOpponent: true,
     targetSelf: false,
     damageOpponent: true,
-    damageSelf: false
+    damageSelf: false,
+    description: "your special attack",
+    index: 1
     }
     ];
     //could add attack to convert health to manna
     //add mana drain attack
-    //add health drain attack
 const gameListInit = function() {
     for (let i = 0; i < NUM_GAMES; ++i)
     {
@@ -358,7 +383,51 @@ const gameListInit = function() {
 
 gameListInit();
 
+const adjList = ["Destroyer", "Inevitable", "Consumer", "Hungry", "Enraged",
+    "Defeated", "Obliterator", "Undaunted", "Undone", "Believer",
+    "Undefeated", "Unbearable", "Champion", "Unfathomable", "Horrible",
+    "Terrible", "Imprissoned", "Honorable", "Noble", "Brave",
+    "Courageous", "Empowered", "Horrific", "Abomination", "Unforgettable",
+    "Forgettable", "Unfortunate", "Irate", "Infuriated", "Angered",
+    "Helpful", "Wrathful", "Annoyed", "Distressed", "Displeased",
+    "Anxious", "Agitated", "Raging", "Fierce", "Turbulent",
+    "Maddened", "Hateful", "Capable", "Steady", "Energetic",
+    "Able", "Unyeilding", "Stalwart", "Muscular", "Mighty",
+    "Unforgiven", "Alert", "Astute", "Imaginative", "Resourceful",
+    "Wise", "Calculating", "Dicerning", "Exceptional", "Keen",
+    "Profound", "Old", "Dark", "Masterful", "Clever",
+    "Experienced", "Masterful", "Careful", "Gifted", "Studious",
+    "Scholarly", "Egotistic", "Intellegent", "Thoughtful", "Enlightened",
+    "Perceptive", "Undefined"
+];
+
+const nameList =    ["Alfred", "Henry", "George", "Mary", "Margaret",
+                     "Susan", "Jane", "Linda", "Nathan", "Herbert"
+    ];
+
+const specialTitleList = ["armageddon thunder", "midnight special", "Lose Control", "lightning", "apocalypse strike",
+                            "mind rend", "insane rush", "demon glare", "explostion", "mindless charge"
+    ];
 /* helperFunctions */
+const getAdjactive = function() {
+    let i = Math.floor((Math.random() * 77));
+    return adjList[i];
+};
+
+const getName = function() {
+    let i = Math.floor((Math.random() * 10));
+    return nameList[i];
+};
+
+
+const generateCharacterName  = () => {
+    return getName() + " the " + getAdjactive();
+};
+
+const generateSpecialAttackTitle = () => {
+    let i = Math.floor((Math.random() * 10));
+    return specialTitleList[i];
+}
 //generate move
 const generateMove = (game, player, level) => {
     //randomly select move to add
@@ -388,7 +457,7 @@ const generateMove = (game, player, level) => {
            gameList[game].players[player].attacks[moveIndex].hpCost *= level;
         }
         //add random adjust to cooldown time
-        gameList[game].players[player].attacks[moveIndex].cooldown += level + Math.floor((Math.random() * 5)) -2;
+        gameList[game].players[player].attacks[moveIndex].cooldown += level + Math.floor((Math.random() * 4)) -2;
         //set starting turns until ready
         gameList[game].players[player].attacks[moveIndex].turnsUntilReady = gameList[game].players[player].attacks[moveIndex].cooldown;
         //add random adjust to strength
@@ -399,7 +468,7 @@ const generateMove = (game, player, level) => {
     else
     {
         //don't forget to set spectial name
-        
+        gameList[game].players[player].attacks[moveIndex].title = generateSpecialAttackTitle();
         //get special level
         let specialLevel = level + Math.floor((Math.random() * 2));
         //set move level
@@ -418,18 +487,20 @@ const generateMove = (game, player, level) => {
 //create Character
 const generateCharacter = (game, player) => {
     gameList[game].players[player] = JSON.parse(JSON.stringify(basicCharacter));
+    gameList[game].players[player].name = generateCharacterName();
     gameList[game].players[player].attacks.push(JSON.parse(JSON.stringify(basicMove)));
+    gameList[game].players[player].attacks[0].strength += Math.floor((Math.random() * 5)) -2;
     generateMove(game, player, 1);
     generateMove(game, player, 2);
     gameList[game].players[player].hp += Math.floor((Math.random() * 41)) -20;
-    gameList[game].players[player].mp += Math.floor((Math.random() * 41)) -20;
+    gameList[game].players[player].mp += Math.floor((Math.random() * 51)) -25;
 };
 
 //perform move
 const performMove = (game, player, moveIndex, opponent) => {
     let hpCost = gameList[game].players[player].attacks[moveIndex].hpCost;
     let mpCost = gameList[game].players[player].attacks[moveIndex].mpCost;
-    let strength = gameList[game].players[player].attacks[moveIndex].strength;
+    let strength = gameList[game].players[player].attacks[moveIndex].strength + Math.floor((Math.random() * 7)) -3;;
     let title = gameList[game].players[player].attacks[moveIndex].title;
     if (hpCost && mpCost) {
         gameList[game].log.unshift(gameList[game].players[player].name + " has paid " + mpCost +" mp and " + hpCost + " hp to perform " + title);
@@ -456,7 +527,7 @@ const performMove = (game, player, moveIndex, opponent) => {
         //else heal opponent
         else {
             gameList[game].players[opponent].hp += strength;
-            gameList[game].log.unshift(gameList[game].players[opponent].name + " takes " + strength + " damage");
+            gameList[game].log.unshift(gameList[game].players[opponent].name + " gains " + strength + " hp");
         }
     }
     //check if move tagets self
@@ -498,21 +569,21 @@ const checkGameOver = (game) => {
         {
             gameList[game].gameOver = true;
             gameList[game].winner = 0;
-            gameList[game].log.unshift("Player 1 and Player 2 have died.");
+            gameList[game].log.unshift(gameList[game].players[0].name + " and " + gameList[game].players[1].name + " have died.");
             gameList[game].log.unshift("The Game is a draw");
         }
     else if ((gameList[game].players[0].hp <= 0))
         {
             gameList[game].gameOver = true;
             gameList[game].winner = 2;
-            gameList[game].log.unshift("Player 1 has died.");
-            gameList[game].log.unshift("Player 2 wins!!");
+            gameList[game].log.unshift(gameList[game].players[0].name + " has died.");
+            gameList[game].log.unshift(gameList[game].players[1].name + " 2 wins!!");
         }
     else if ((gameList[game].players[1].hp <= 0))
         {
             gameList[game].gameOver = true;
             gameList[game].winner = 1;
-            gameList[game].log.unshift("Player 2 has died.");
-            gameList[game].log.unshift("Player 1 wins!!");
+            gameList[game].log.unshift(gameList[game].players[1].name + " has died.");
+            gameList[game].log.unshift(gameList[game].players[0].name + " wins!!");
         }
 };
