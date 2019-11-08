@@ -104,6 +104,7 @@ let app = new Vue({
             var url = "http://cs260.kentashby.com:4210/game/reset";
             axios.post(url, { password: this.resetPassword })
                 .then(response => {
+                    this.resetPassword = "";
                     if (response.data.success === "Updated Successfully") {
                         this.inGame = false;
                         this.playerNumber = 0;

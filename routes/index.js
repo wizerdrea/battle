@@ -337,7 +337,7 @@ const moveList = [
     targetSelf: false,
     damageOpponent: true,
     damageSelf: false,
-    description: "spen health to harm opponent",
+    description: "spend health to harm opponent",
     index: 1
     },
     {
@@ -474,7 +474,7 @@ const generateMove = (game, player, level) => {
         //set move level
         gameList[game].players[player].attacks[moveIndex].level = specialLevel;
         gameList[game].players[player].attacks[moveIndex].mpCost += Math.floor((Math.random() * specialLevel*15));
-        gameList[game].players[player].attacks[moveIndex].hpCost += Math.floor((Math.random() * specialLevel*12));
+        gameList[game].players[player].attacks[moveIndex].hpCost += Math.floor((Math.random() * specialLevel*8));
         //add random adjust to cooldown time
         gameList[game].players[player].attacks[moveIndex].cooldown += specialLevel + Math.floor((Math.random() * specialLevel*2));
         //set starting turns until ready
